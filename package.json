@@ -1,0 +1,21 @@
+{
+  "name": "alquiler-campuslands",
+  "version": "1.0.0",
+  "description": "Esta plataforma ha sido desarrollada utilizando las tecnologías de **Node.js, Express y MongoDB**, y está diseñada para ofrecer una gestión eficiente y bien organizada de alquileres de vehículos.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "zach": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongodb": "^6.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
