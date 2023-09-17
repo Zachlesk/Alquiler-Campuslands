@@ -60,13 +60,6 @@ Para poder instalarlo, sigue los siguientes pasos:
 
 Ya tenemos corriendo nuestro servidor, pero ¿cómo ingresamos a la información almacenada en nuestra base de datos?. Pues aquí está la explicación de como ingresar a cada una de ellas:
 
-
-- `http://[tu_host]:[tu_puerto]/automoviles` 🚘: Consulta todos los automóviles.
-- `http://[tu_host]:[tu_puerto]/automoviles/disponibles` 🟢: Consulta automóviles disponibles. **Próximamente dinámico**.
-- `http://[tu_host]:[tu_puerto]/automoviles/capacidad/qte=:id` 👥: Consulta autos con capacidad igual o mayor a `:id`.
-- `http://[tu_host]:[tu_puerto]/automoviles/capacidad/lte=:id` 🙋‍♂️: Consulta autos con capacidad igual o menor a `:id`.
-- `http://[tu_host]:[tu_puerto]/automoviles/modelo_marca` 🏁: Consulta automóviles ordenados por modelo y marca.
-
 <br>
 
 ## Clientes
