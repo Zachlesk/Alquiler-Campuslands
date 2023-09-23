@@ -1,26 +1,37 @@
 import { MongoClient,    } from "mongodb";
 import { Router } from "express";
+import validateToken from '../middlewares/validateJWT.js';
+import db from "../connection/connection.js";
 import generateJWT from "../helpers/token.js";
+
 import {
     vendedorEmpleado,
     empleadosAdministrativos
 } from '../controllers/empleados.js';
 
+import {
+    getEmpleados,
+    postEmpleado,
+    deleteEmpleado,
+    putEmpleado
+} from '../controllers/empleados.js';
+
+
 const empleados = Router();
 const uri = process.env.MONGO_URI;
 
-empleados.get('/vendedor', vendedorEmpleado)
-empleados.get('/administrativos', empleadosAdministrativos)
-empleados.post('/login', async (req, res) => {
+
+// ENDPOINTS
+
+empleados.get('/vendedor', validateToken, vendedorEmpleado)
+empleados.get('/administrativos', validateToken, empleadosAdministrativos)
+empleados.post('/login',  async (req, res) => {
     const { dni_empleado, contraseña } = req.body
     
     try {
-        const client = new MongoClient(uri);
-        await client.connect();
-        const db = client.db(nombreBase);
         const collection = db.collection("empleados");
         const dniVerified = await collection.findOne({ dni_empleado });
-        if (!existeDNI) {
+        if (!dniVerified) {
             return res.status(400).json({
                 msg: "Email invalid"
             })
@@ -36,10 +47,16 @@ empleados.post('/login', async (req, res) => {
                 message: 'User valid'
             })
         }
-        await client.close();
     } catch (error) {
         console.log(error);
     }
 })
+
+// METHODS CRUD HTTP
+
+empleados.get('/get', getEmpleados);
+empleados.post('/post', postEmpleado);
+empleados.delete('/delete/:id', deleteEmpleado);
+empleados.put('/put/:id', putEmpleado);
 
 export default empleados;

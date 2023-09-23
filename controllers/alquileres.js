@@ -1,22 +1,15 @@
-import ObjectId from "mongodb";
+import { ObjectId } from 'mongodb';
 import db from "../connection/connection.js";
-import jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const alquileres = db.collection('alquiler');
-const empleados = db.collection('empleados');
+
+// ENDPOINTS
 
 export async function automovilesAvailable(req, res) {
     try{
-    const token = req.header("token");
-    const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-    const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-        if (!valid) {
-            return res.send({ msg: "User invalid" })
-        }
-
     const results = await alquileres.aggregate([
         { $lookup: { from: "automoviles", localField: "id_automovil", foreignField: "_id", as: "automovil"}},
         { $match: { estado: "Disponible" }},
@@ -31,13 +24,6 @@ export async function automovilesAvailable(req, res) {
 
 export async function activosClientes(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.aggregate([
             { $lookup: {from:'clientes', localField: 'id_cliente', foreignField: '_id', as:'cliente'}},
             { $match: { estado: 'Activo'}},
@@ -52,13 +38,6 @@ export async function activosClientes(req, res) {
 
 export async function detallesAlquiler(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.find({id_alquiler: parseInt(req.params.id)}).toArray();
         res.status(302).send(results)
     } catch (error) {
@@ -68,13 +47,6 @@ export async function detallesAlquiler(req, res) {
 
 export async function costoTotalAlquiler(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.aggregate([
             { $match: {'id_alquiler': parseInt(req.params.id)}},
             { $project: {_id: 0, id_alquiler: '$id_alquiler', costo_total: '$costo_total'}}
@@ -87,13 +59,6 @@ export async function costoTotalAlquiler(req, res) {
 
 export async function fechaDetalles(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.find({fecha_inicio: 20230705}).toArray(); 
         res.status(302).send(results)
     } catch (error) {
@@ -103,13 +68,6 @@ export async function fechaDetalles(req, res) {
 
 export async function datosAlquiler(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.aggregate([
             { $lookup: {from: "clientes", localField: "id_cliente", foreignField: "_id", as: "cliente"}},
             { $project: { _id: 0, cliente: '$cliente'}}
@@ -122,13 +80,6 @@ export async function datosAlquiler(req, res) {
 
 export async function cantidadTotal(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.countDocuments();
         res.status(302).send(results)
     } catch (error) {
@@ -138,13 +89,6 @@ export async function cantidadTotal(req, res) {
 
 export async function capacidadDisponibles(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
-
         const results = await alquileres.aggregate([
             { $lookup:{ from: "automoviles", localField: "id_automovil", foreignField: "_id", as: "automovil" }},
             { $unwind: '$automovil'},
@@ -159,15 +103,56 @@ export async function capacidadDisponibles(req, res) {
 
 export async function fechaMediana(req, res) {
     try {
-        const token = req.header("token");
-        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
-        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
-            if (!valid) {
-                return res.send({ msg: "User invalid" })
-            }
         const results = await alquileres.find({$and: [{fecha_inicio: {$gte: '20230705'}},{fecha_inicio: {$lte: '20230710'}}]}).toArray();
         res.status(302).send(results)
     } catch (error) {
         console.error(error)
     }
 }
+
+// METHODS CRUD HTTP
+
+export async function getAlquileres(req, res) {
+    try {
+        const info = await alquileres.find().toArray();
+        res.json(info);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    } 
+};
+
+export async function postAlquiler(req, res) {
+    try {
+        const data = req.body;
+        const response = await alquileres.insertOne(data);
+        res.json({
+            response,
+            data
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export async function deleteAlquiler(req, res) {
+    try {
+        const id = req.params.id;
+        const response = await alquileres.deleteOne({ _id: new ObjectId(id) });
+        res.json(response);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+};
+
+export async function putAlquiler(req, res){
+    try {
+        const data = req.body;
+        const id = req.params.id;
+        await alquileres.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: data });
+        res.send(data);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    } 
+};
+
+
