@@ -1,10 +1,23 @@
+import ObjectId from "mongodb";
+import jwt from "jsonwebtoken";
 import db from "../connection/connection.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const sucursal = db.collection('sucursal');
 const sucursal_automovil = db.collection('sucursal_automovil');
+const empleados = db.collection('empleados');
 
 export async function automovilesSucursal(req, res) {
     try {
+        const token = req.header("token");
+        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
+        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
+        if (!valid) {
+            return res.send({ msg: "User invalid" })
+        }
+
         const results = await sucursal_automovil.aggregate([
             { $lookup: { from: "sucursal", localField: "id_sucursal", foreignField: "_id", as: "sucursal_info"}},
             { $unwind: "$sucursal_info" }, 
@@ -19,6 +32,13 @@ export async function automovilesSucursal(req, res) {
 
 export async function cantidadTotalSucursal(req, res) {
     try {
+        const token = req.header("token");
+        const { uid } = jwt.verify(token, process.env.SECRET_OR_PRIVATE_KEY);
+        const valid = await empleados.findOne({ _id: new ObjectId(uid) });
+        if (!valid) {
+            return res.send({ msg: "User invalid" })
+        }
+
         const results = await sucursal.aggregate([
             { $lookup: { from: "sucursal_automovil", localField: "_id", foreignField: "id_sucursal", as: "sucursal_automovil"}},
             { $unwind: "$sucursal_automovil" }, 
